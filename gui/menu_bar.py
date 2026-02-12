@@ -1231,7 +1231,7 @@ class UpdateCheckThread(QThread):
     
     def _check_update(self):
         """检查更新"""
-        UPDATE_URL = "https://raw.githubusercontent.com/yourusername/version4/main/VERSION"
+        UPDATE_URL = "https://raw.githubusercontent.com/dzl123321/SimofAtmScatt/main/VERSION"
         
         try:
             with urllib.request.urlopen(UPDATE_URL, timeout=10) as response:
