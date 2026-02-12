@@ -145,7 +145,7 @@ def check_updates_on_start(app):
     update_manager = UpdateManager(
         current_version,
         update_source="github",
-        repo_owner="yourusername",  # 替换为实际的 GitHub 用户名
+        repo_owner="dzl123321",  # 替换为实际的 GitHub 用户名
         repo_name="SimofAtmScatt"  # 替换为实际的 GitHub 仓库名
     )
     update_info = update_manager.check_for_updates()
@@ -219,7 +219,7 @@ def check_updates_manual(parent_widget):
     update_manager = UpdateManager(
         current_version,
         update_source="github",
-        repo_owner="yourusername",  # 替换为实际的 GitHub 用户名
+        repo_owner="dzl123321",  # 替换为实际的 GitHub 用户名
         repo_name="SimofAtmScatt"  # 替换为实际的 GitHub 仓库名
     )
     

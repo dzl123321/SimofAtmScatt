@@ -1,7 +1,7 @@
 {
-  "version": "2.0.0",
-  "release_date": "2024-01-01",
-  "release_notes": "初始发布版本\n- 降雨环境下激光散射特性仿真\n- 雾霾环境下激光散射特性仿真\n- 激光雷达系统性能分析\n- 多维度结果可视化\n- 数据导出和报告生成",
-  "download_url": "https://github.com/yourusername/version4/releases/latest",
-  "min_compatible_version": "2.0.0"
+  "version": "2.0.1",
+  "release_date": "2026-02-13",
+  "release_notes": "测试更新版本\n- 降雨环境下激光散射特性仿真\n- 雾霾环境下激光散射特性仿真\n- 激光雷达系统性能分析\n- 多维度结果可视化\n- 数据导出和报告生成",
+  "download_url": "https://github.com/dzl123321/SimofAtmScatt/releases/latest",
+  "min_compatible_version": "2.0.1"
 }
