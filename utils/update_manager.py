@@ -1,10 +1,45 @@
 import os
+import json
 import requests
 import tempfile
 import shutil
 import zipfile
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QMessageBox
+
+def get_current_version():
+    """获取当前版本号，优先从 VERSION 文件读取"""
+    import sys
+    
+    # 获取项目根目录
+    if getattr(sys, 'frozen', False):
+        # 如果是打包后的可执行文件
+        base_path = sys._MEIPASS
+    else:
+        # 如果是开发环境
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    # 首先尝试从 VERSION 文件读取
+    version_file = os.path.join(base_path, "VERSION")
+    if os.path.exists(version_file):
+        try:
+            with open(version_file, 'r', encoding='utf-8') as f:
+                version_info = json.load(f)
+                version = version_info.get("version")
+                if version:
+                    print(f"从 VERSION 文件读取版本: {version}")
+                    return version
+        except Exception as e:
+            print(f"读取 VERSION 文件失败: {e}")
+    
+    # 如果 VERSION 文件不存在或读取失败，使用 version.py 中的版本号
+    try:
+        from utils.version import __version__
+        print(f"从 version.py 读取版本: {__version__}")
+        return __version__
+    except Exception as e:
+        print(f"读取 version.py 失败: {e}")
+        return "1.0.0"
 
 class UpdateManager:
     def __init__(self, current_version, update_source="github", repo_owner="yourusername", repo_name="yourrepository"):
@@ -136,9 +171,8 @@ def install_update(update_file, current_exe_path):
 
 def check_updates_on_start(app):
     """启动时检查更新"""
-    # 使用 version.py 中的版本号
-    from utils.version import __version__
-    current_version = __version__
+    # 使用统一的版本获取函数
+    current_version = get_current_version()
     
     # 检查更新
     # 这里使用 GitHub 作为更新源，需要替换为实际的用户名和仓库名
@@ -211,9 +245,8 @@ def check_updates_manual(parent_widget):
     """手动检查更新（从菜单栏调用）"""
     from PyQt5.QtWidgets import QProgressDialog
     
-    # 使用 version.py 中的版本号
-    from utils.version import __version__
-    current_version = __version__
+    # 使用统一的版本获取函数
+    current_version = get_current_version()
     
     # 创建更新管理器
     update_manager = UpdateManager(

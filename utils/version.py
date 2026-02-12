@@ -1,8 +1,8 @@
-__version__ = "2.0.0"
+__version__ = "2.0.2"
 __app_name__ = "大气散射特性建模仿真系统"
 __author__ = "西安电子科技大学"
 __copyright__ = "Copyright © 2024 西安电子科技大学"
-__release_date__ = "2024-01-01"
+__release_date__ = "2026-02-13"
 __description__ = "降雨环境下激光散射特性仿真、激光雷达系统性能分析、多维度结果可视化和数据导出报告生成"
 
 
