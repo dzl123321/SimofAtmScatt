@@ -105,11 +105,17 @@ class UpdateDownloader(QThread):
     """更新下载线程"""
     progress = pyqtSignal(int)
     finished = pyqtSignal(bool, str)
+    cancelled = pyqtSignal()
     
     def __init__(self, download_url, target_path):
         super().__init__()
         self.download_url = download_url
         self.target_path = target_path
+        self.is_cancelled = False
+    
+    def cancel(self):
+        """取消下载"""
+        self.is_cancelled = True
     
     def run(self):
         try:
@@ -120,6 +126,14 @@ class UpdateDownloader(QThread):
             
             with open(self.target_path, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=8192):
+                    if self.is_cancelled:
+                        # 用户取消下载
+                        f.close()
+                        if os.path.exists(self.target_path):
+                            os.remove(self.target_path)
+                        self.cancelled.emit()
+                        return
+                    
                     if chunk:
                         f.write(chunk)
                         downloaded_size += len(chunk)
@@ -127,9 +141,11 @@ class UpdateDownloader(QThread):
                             progress = int((downloaded_size / total_size) * 100)
                             self.progress.emit(progress)
             
-            self.finished.emit(True, "")
+            if not self.is_cancelled:
+                self.finished.emit(True, "")
         except Exception as e:
-            self.finished.emit(False, str(e))
+            if not self.is_cancelled:
+                self.finished.emit(False, str(e))
 
 def install_update(update_file, current_exe_path):
     """安装更新"""
@@ -236,9 +252,20 @@ def check_updates_on_start(app):
                         QMessageBox.Ok
                     )
             
+            def on_download_cancelled():
+                progress_dialog.close()
+                QMessageBox.information(
+                    None,
+                    "更新已取消",
+                    "更新已被取消，您可以稍后手动更新。",
+                    QMessageBox.Ok
+                )
+            
             downloader.progress.connect(update_progress)
             downloader.finished.connect(on_download_finished)
+            downloader.cancelled.connect(on_download_cancelled)
             downloader.start()
+            progress_dialog.canceled.connect(downloader.cancel)
             progress_dialog.exec_()
 
 def check_updates_manual(parent_widget):
@@ -355,9 +382,20 @@ def download_and_install_update(parent_widget, download_url):
                 QMessageBox.Ok
             )
     
+    def on_download_cancelled():
+        progress_dialog.close()
+        QMessageBox.information(
+            parent_widget,
+            "更新已取消",
+            "更新已被取消，您可以稍后手动更新。",
+            QMessageBox.Ok
+        )
+    
     downloader.progress.connect(update_progress)
     downloader.finished.connect(on_download_finished)
+    downloader.cancelled.connect(on_download_cancelled)
     downloader.start()
+    progress_dialog.canceled.connect(downloader.cancel)
     progress_dialog.exec_()
 
 # 导入必要的模块
