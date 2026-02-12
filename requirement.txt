@@ -1,0 +1,18 @@
+# GUI 界面库
+PyQt5>=5.15.0
+PyQt5-sip>=12.0
+
+# 科学计算和数据处理
+numpy>=1.20.0
+scipy>=1.7.0  # PyMieScatt 可能需要
+
+# 绘图和可视化
+matplotlib>=3.5.0
+
+# 大气散射计算核心库
+PyMieScatt>=1.8.0  # 用于 Mie 散射计算
+
+# 其他依赖（可选，用于某些系统兼容性）
+pyqtgraph>=0.12.0  # 如果以后需要更复杂的图表
+pandas>=1.4.0      # 如果需要数据处理
+openpyxl>=3.0.0    # 如果需要导出 Excel
