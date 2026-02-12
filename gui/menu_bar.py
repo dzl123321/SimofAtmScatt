@@ -3,8 +3,6 @@ import os
 from datetime import datetime
 import numpy as np
 import json
-import urllib.request
-import urllib.error
 from PyQt5.QtCore import QThread, pyqtSignal
 
 from PyQt5.QtWidgets import (QMenuBar, QMenu, QAction, QActionGroup, QDialog,
@@ -27,7 +25,6 @@ class MenuBarManager:
         self.simulation_results = None
         self.windows = []  # 存储所有打开的窗口
         self.windows.append(main_window)  # 添加当前窗口到列表
-        self.update_thread = None  # 更新检查线程
 
     def create_menu_bar(self):
         """创建完整的菜单栏"""
@@ -1113,162 +1110,5 @@ class MenuBarManager:
 
     def check_update(self):
         """检查更新"""
-        reply = QMessageBox.question(
-            self.main_window,
-            "检查更新",
-            "是否检查软件更新？",
-            QMessageBox.Yes | QMessageBox.No
-        )
-
-        if reply == QMessageBox.Yes:
-            self._start_update_check()
-
-    def _start_update_check(self):
-        """开始检查更新"""
-        from utils import __version__
-        
-        progress = QProgressDialog("正在检查更新...", "取消", 0, 0, self.main_window)
-        progress.setWindowTitle("检查更新")
-        progress.setWindowModality(Qt.WindowModal)
-        progress.show()
-        
-        update_thread = UpdateCheckThread(__version__)
-        self.update_thread = update_thread
-        
-        update_thread.finished.connect(lambda result: self._handle_update_result(result, progress))
-        update_thread.error.connect(lambda error: self._handle_update_error(error, progress))
-        update_thread.start()
-        
-        progress.canceled.connect(self._cancel_update_check)
-
-    def _cancel_update_check(self):
-        """取消更新检查"""
-        if self.update_thread and self.update_thread.isRunning():
-            self.update_thread.terminate()
-            self.update_thread.wait()
-        self.update_thread = None
-
-    def _handle_update_result(self, result, progress):
-        """处理更新检查结果"""
-        progress.close()
-        self.update_thread = None
-        
-        if result['status'] == 'latest':
-            QMessageBox.information(
-                self.main_window,
-                "检查更新",
-                f"当前已是最新版本\n\n当前版本: {result['current_version']}"
-            )
-        elif result['status'] == 'update_available':
-            reply = QMessageBox.question(
-                self.main_window,
-                "发现新版本",
-                f"发现新版本可用！\n\n"
-                f"当前版本: {result['current_version']}\n"
-                f"最新版本: {result['remote_version']}\n\n"
-                f"更新说明:\n{result['release_notes']}\n\n"
-                f"是否查看更新说明？",
-                QMessageBox.Yes | QMessageBox.No
-            )
-            
-            if reply == QMessageBox.Yes:
-                self._show_update_instructions(result['remote_version'])
-        elif result['status'] == 'network_error':
-            QMessageBox.warning(
-                self.main_window,
-                "网络错误",
-                f"无法连接到更新服务器\n\n错误信息: {result['error']}\n\n"
-                "请检查网络连接或稍后重试。"
-            )
-
-    def _handle_update_error(self, error, progress):
-        """处理更新检查错误"""
-        progress.close()
-        self.update_thread = None
-        QMessageBox.warning(
-            self.main_window,
-            "检查更新失败",
-            f"检查更新时发生错误:\n\n{error}"
-        )
-
-    def _show_update_instructions(self, new_version):
-        """显示更新说明"""
-        instructions = (
-            f"如何更新到版本 {new_version}:\n\n"
-            "方法一: 手动下载更新\n"
-            "1. 访问项目发布页面下载最新版本\n"
-            "2. 解压下载的文件覆盖当前安装目录\n"
-            "3. 重新启动程序\n\n"
-            "方法二: Git 更新 (如果是 Git 克隆的版本)\n"
-            "1. 打开终端，进入项目目录\n"
-            "2. 运行: git pull origin main\n"
-            "3. 运行: pip install -r requirement.txt --upgrade\n"
-            "4. 重新启动程序\n\n"
-            "注意: 更新前请备份您的数据和配置文件！"
-        )
-        QMessageBox.information(
-            self.main_window,
-            "更新说明",
-            instructions
-        )
-
-
-class UpdateCheckThread(QThread):
-    """更新检查线程"""
-    finished = pyqtSignal(dict)
-    error = pyqtSignal(str)
-    
-    def __init__(self, current_version):
-        super().__init__()
-        self.current_version = current_version
-    
-    def run(self):
-        try:
-            result = self._check_update()
-            self.finished.emit(result)
-        except Exception as e:
-            self.error.emit(str(e))
-    
-    def _check_update(self):
-        """检查更新"""
-        UPDATE_URL = "https://raw.githubusercontent.com/dzl123321/SimofAtmScatt/main/VERSION"
-        
-        try:
-            with urllib.request.urlopen(UPDATE_URL, timeout=10) as response:
-                remote_version_info = json.loads(response.read().decode('utf-8'))
-                remote_version = remote_version_info.get('version', self.current_version)
-                release_notes = remote_version_info.get('release_notes', '暂无更新说明')
-                
-                from utils import compare_versions
-                comparison = compare_versions(self.current_version, remote_version)
-                
-                if comparison < 0:
-                    return {
-                        'status': 'update_available',
-                        'current_version': self.current_version,
-                        'remote_version': remote_version,
-                        'release_notes': release_notes
-                    }
-                else:
-                    return {
-                        'status': 'latest',
-                        'current_version': self.current_version
-                    }
-                    
-        except urllib.error.URLError as e:
-            return {
-                'status': 'network_error',
-                'error': str(e)
-            }
-        except Exception as e:
-            return {
-                'status': 'network_error',
-                'error': str(e)
-            }
-    
-    def cleanup(self):
-        """清理线程资源"""
-        if self.isRunning():
-            self.terminate()
-            self.wait()
-        self.deleteLater()
+        from utils.update_manager import check_updates_manual
+        check_updates_manual(self.main_window)

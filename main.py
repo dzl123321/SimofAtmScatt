@@ -123,6 +123,13 @@ def main():
 
     app.setStyle('Fusion')
 
+    # 检查更新
+    try:
+        from utils.update_manager import check_updates_on_start
+        check_updates_on_start(app)
+    except Exception as e:
+        print(f"检查更新失败: {e}")
+
     # 显示启动窗口
     try:
         startup_window = StartupWindow()
