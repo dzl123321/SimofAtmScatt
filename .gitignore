@@ -1,0 +1,48 @@
+# Python缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 虚拟环境
+venv/
+env/
+.env
+.venv
+
+# IDE配置
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 日志文件
+*.log
+logs/
+
+# 本地配置文件
+config.local.py
+*.local
+
+# 操作系统生成
+.DS_Store
+Thumbs.db
+
+# 测试报告
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+
+# 数据库
+*.db
+*.sqlite
+*.sqlite3
+
+# 打包文件
+dist/
+build/
+*.egg-info/
